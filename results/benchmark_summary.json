@@ -1,0 +1,11 @@
+{
+  "total_events_evaluated": 245,
+  "accuracy": 0.9344,
+  "accuracy_percent": 93.44,
+  "precision": 0.8678,
+  "recall": 1.0,
+  "false_positive_rate": 0.1151,
+  "false_negative_rate": 0.0,
+  "average_latency_ms": 0.008,
+  "target_met": true
+}

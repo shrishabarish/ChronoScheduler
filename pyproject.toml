@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "chronoscheduler"
+version = "0.1.0"
+description = "Neuro-Symbolic Predictive Process Scheduler and Digital Twin for Linux"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [
+    { name = "shrishabarish" }
+]
+urls = { "Homepage" = "https://github.com/shrishabarish/ChronoScheduler", "Repository" = "https://github.com/shrishabarish/ChronoScheduler.git" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: POSIX :: Linux",
+    "Topic :: System :: Operating System Kernels :: Linux",
+    "Topic :: System :: Hardware",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence"
+]
+dependencies = [
+    "psutil>=5.9.0",
+    "websockets>=12.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*", "backend*"]

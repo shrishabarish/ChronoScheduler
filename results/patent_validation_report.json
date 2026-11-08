@@ -1,0 +1,41 @@
+{
+  "iterations": 6,
+  "cfs_mean_latency_ms": 21.868,
+  "cfs_std_latency_ms": 16.58,
+  "chrono_mean_latency_ms": 21.658,
+  "chrono_std_latency_ms": 16.848,
+  "latency_reduction_percent": 0.96,
+  "mean_inference_overhead_us": 16.747,
+  "cfs_mean_context_switches": 0.0,
+  "chrono_mean_context_switches": 0.0,
+  "context_switch_reduction_percent": 0.0,
+  "prediction_accuracy_percent": 92.94,
+  "precision_percent": 86.05,
+  "recall_percent": 100.0,
+  "false_negative_rate_percent": 0.0,
+  "scheduler_net_gain_ms": 0.194,
+  "target_met": true,
+  "scenario_breakdown": {
+    "pylance": {
+      "cfs_mean_ms": 18.535,
+      "chrono_mean_ms": 18.08,
+      "reduction_percent": 2.46,
+      "cfs_switches": 0.0,
+      "chrono_switches": 0.0
+    },
+    "gcc": {
+      "cfs_mean_ms": 41.839,
+      "chrono_mean_ms": 42.025,
+      "reduction_percent": -0.45,
+      "cfs_switches": 0.0,
+      "chrono_switches": 0.0
+    },
+    "python3": {
+      "cfs_mean_ms": 5.231,
+      "chrono_mean_ms": 4.868,
+      "reduction_percent": 6.93,
+      "cfs_switches": 0.0,
+      "chrono_switches": 0.0
+    }
+  }
+}

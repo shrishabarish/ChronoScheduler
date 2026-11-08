@@ -4,7 +4,10 @@ from dataclasses import dataclass
 @dataclass
 class ChronoConfig:
     # Database
-    db_path: str = os.getenv("CHRONOSCHED_DB", "/home/vboxuser/Desktop/ChronoScheduler/data/chronosched.db")
+    db_path: str = os.getenv(
+        "CHRONOSCHED_DB", 
+        os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "data", "chronosched.db")
+    )
     
     # Telemetry
     polling_interval_sec: float = 0.05

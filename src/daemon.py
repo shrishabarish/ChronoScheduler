@@ -2,7 +2,10 @@ import os
 import time
 import json
 import threading
-from typing import Optional, Callable
+import logging
+from typing import Optional, Callable, Any
+
+logger = logging.getLogger("ChronoSched")
 from .core.models import ProcessEvent, SafetyDecision, SimulationResult, SchedulerAction
 from .core.config import config
 from .core.database import EventStore
@@ -22,7 +25,7 @@ class ChronoSchedDaemon:
         self.predictor = PredictionEngine(graph=self.graph, db=self.db)
         self.confidence_engine = ConfidenceEngine(threshold=config.confidence_threshold)
         self.safety_engine = NeuroSymbolicSafetyEngine()
-        self.digital_twin = DigitalTwinSimulator()
+        self.digital_twin = DigitalTwinSimulator(db=self.db)
         self.scheduler = LinuxSchedulerActionEngine(db=self.db)
         self.rollback_engine = RollbackAndFeedbackEngine(
             scheduler_engine=self.scheduler,

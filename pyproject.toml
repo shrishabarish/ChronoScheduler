@@ -33,3 +33,7 @@ dev = [
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["src*", "backend*"]
+
+[project.scripts]
+chronosched = "src.cli:main"
+

@@ -33,8 +33,10 @@ def main():
     print("=" * 60)
 
     # Persist benchmark result in results/
-    os.makedirs("/home/vboxuser/Desktop/ChronoScheduler/results", exist_ok=True)
-    with open("/home/vboxuser/Desktop/ChronoScheduler/results/benchmark_summary.json", "w") as f:
+    proj_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    results_dir = os.path.join(proj_root, "results")
+    os.makedirs(results_dir, exist_ok=True)
+    with open(os.path.join(results_dir, "benchmark_summary.json"), "w") as f:
         json.dump(results, f, indent=2)
 
 if __name__ == "__main__":

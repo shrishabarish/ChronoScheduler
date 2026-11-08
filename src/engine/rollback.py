@@ -1,6 +1,6 @@
 import time
 import threading
-from typing import Dict, Optional, Callable
+from typing import Dict, Optional, Callable, List
 from ..core.models import SchedulerAction, FeedbackEvent, DependencyEdge
 from ..core.database import EventStore
 from ..graph.temporal_graph import TemporalDependencyGraph

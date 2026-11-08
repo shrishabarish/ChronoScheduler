@@ -1,3 +1,4 @@
+import os
 import sqlite3
 import json
 import time
@@ -19,6 +20,10 @@ class EventStore:
     def _get_connection(self) -> sqlite3.Connection:
         if self._conn is not None:
             return self._conn
+        if self.db_path != ":memory:":
+            db_dir = os.path.dirname(self.db_path)
+            if db_dir:
+                os.makedirs(db_dir, exist_ok=True)
         conn = sqlite3.connect(self.db_path, check_same_thread=False)
         conn.row_factory = sqlite3.Row
         return conn
@@ -119,6 +124,18 @@ class EventStore:
                 thermal_throttled INTEGER NOT NULL,
                 battery_saver_active INTEGER NOT NULL,
                 timestamp REAL NOT NULL
+            )
+            """)
+
+            # Digital Twin Table: process_profiles
+            cursor.execute("""
+            CREATE TABLE IF NOT EXISTS process_profiles (
+                process_name TEXT PRIMARY KEY,
+                cpu_delta REAL NOT NULL,
+                mem_delta_mb REAL NOT NULL,
+                latency_ms REAL NOT NULL,
+                sample_count INTEGER DEFAULT 1,
+                last_updated REAL NOT NULL
             )
             """)
             conn.commit()
@@ -271,3 +288,61 @@ class EventStore:
             conn.commit()
             fb.feedback_id = cursor.lastrowid
             return fb.feedback_id
+
+    def upsert_process_profile(self, process_name: str, cpu_delta: float, mem_delta_mb: float, latency_ms: float):
+        process_key = process_name.lower()
+        now = time.time()
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT cpu_delta, mem_delta_mb, latency_ms, sample_count FROM process_profiles WHERE process_name = ?", (process_key,))
+            row = cursor.fetchone()
+            if row:
+                old_cpu, old_mem, old_lat, count = row["cpu_delta"], row["mem_delta_mb"], row["latency_ms"], row["sample_count"]
+                new_count = count + 1
+                # Exponential moving average / online cumulative average
+                avg_cpu = ((old_cpu * count) + cpu_delta) / new_count
+                avg_mem = ((old_mem * count) + mem_delta_mb) / new_count
+                avg_lat = ((old_lat * count) + latency_ms) / new_count
+                cursor.execute("""
+                UPDATE process_profiles SET
+                    cpu_delta = ?, mem_delta_mb = ?, latency_ms = ?, sample_count = ?, last_updated = ?
+                WHERE process_name = ?
+                """, (avg_cpu, avg_mem, avg_lat, new_count, now, process_key))
+            else:
+                cursor.execute("""
+                INSERT INTO process_profiles (
+                    process_name, cpu_delta, mem_delta_mb, latency_ms, sample_count, last_updated
+                ) VALUES (?, ?, ?, ?, 1, ?)
+                """, (process_key, cpu_delta, mem_delta_mb, latency_ms, now))
+            conn.commit()
+
+    def get_process_profile(self, process_name: str) -> Optional[Dict[str, float]]:
+        process_key = process_name.lower()
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT cpu_delta, mem_delta_mb, latency_ms, sample_count FROM process_profiles WHERE process_name = ?", (process_key,))
+            row = cursor.fetchone()
+            if row:
+                return {
+                    "cpu_delta": row["cpu_delta"],
+                    "mem_delta_mb": row["mem_delta_mb"],
+                    "latency_ms": row["latency_ms"],
+                    "sample_count": row["sample_count"]
+                }
+            return None
+
+    def get_all_process_profiles(self) -> Dict[str, Dict[str, float]]:
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT process_name, cpu_delta, mem_delta_mb, latency_ms, sample_count FROM process_profiles")
+            rows = cursor.fetchall()
+            return {
+                r["process_name"]: {
+                    "cpu_delta": r["cpu_delta"],
+                    "mem_delta_mb": r["mem_delta_mb"],
+                    "latency_ms": r["latency_ms"],
+                    "sample_count": r["sample_count"]
+                }
+                for r in rows
+            }
+

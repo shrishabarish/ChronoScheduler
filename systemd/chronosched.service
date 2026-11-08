@@ -1,0 +1,22 @@
+[Unit]
+Description=ChronoScheduler: Preemptive CPU Resource Allocation Daemon
+Documentation=https://github.com/shrishabarish/ChronoScheduler
+After=network.target sys-kernel-debug.mount
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 -m src.cli run
+WorkingDirectory=/home/shrishabarish/Desktop/ChronoScheduler
+Restart=always
+RestartSec=3
+Environment="PYTHONUNBUFFERED=1"
+Environment="CHRONOSCHED_CONFIDENCE_THRESHOLD=0.35"
+LimitNOFILE=65535
+
+# Process priority and CPU affinity
+Nice=-10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

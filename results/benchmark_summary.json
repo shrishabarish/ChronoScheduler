@@ -6,6 +6,6 @@
   "recall": 1.0,
   "false_positive_rate": 0.1151,
   "false_negative_rate": 0.0,
-  "average_latency_ms": 0.008,
+  "average_latency_ms": 0.006,
   "target_met": true
 }

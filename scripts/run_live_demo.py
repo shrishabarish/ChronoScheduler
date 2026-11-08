@@ -48,8 +48,37 @@ def main():
     print("  Form-B Closed-Loop Real-Time Observability Runner")
     print("=" * 70)
 
-    # 1. Start WebSocket Server
-    ws_server = LightweightWebSocketServer(host="127.0.0.1", port=8765)
+    # 1. Daemon instance container
+    daemon_holder = {"daemon": None}
+
+    def handle_client_message(action: str, payload: dict):
+        d = daemon_holder.get("daemon")
+        if not d:
+            return
+        now = time.time()
+        pid = payload.get("pid", 8800 + int(now % 1000))
+        if action == "simulate_vscode":
+            print(f"\n>>> [WEB TRIGGER] User launched 'code' (PID {pid})")
+            d.handle_process_event(ProcessEvent(pid=pid, ppid=1, process_name="code", executable="/usr/bin/code", timestamp=now))
+        elif action == "simulate_pylance":
+            print(f"\n>>> [WEB TRIGGER] Impending process 'pylance' launched (PID {pid+1})")
+            d.handle_process_event(ProcessEvent(pid=pid+1, ppid=pid, process_name="pylance", executable="/usr/bin/pylance", timestamp=now))
+        elif action == "simulate_build":
+            print(f"\n>>> [WEB TRIGGER] User launched 'build_tool' (PID {pid})")
+            d.handle_process_event(ProcessEvent(pid=pid, ppid=1, process_name="build_tool", executable="/usr/bin/make", timestamp=now))
+        elif action == "simulate_gcc":
+            print(f"\n>>> [WEB TRIGGER] Impending process 'gcc' launched (PID {pid+1})")
+            d.handle_process_event(ProcessEvent(pid=pid+1, ppid=pid, process_name="gcc", executable="/usr/bin/gcc", timestamp=now))
+        elif action == "simulate_timeout":
+            print(f"\n>>> [WEB TRIGGER] User launched 'terminal' (PID {pid}) -> Waiting 5s for timeout...")
+            d.handle_process_event(ProcessEvent(pid=pid, ppid=1, process_name="terminal", executable="/usr/bin/bash", timestamp=now))
+        elif action == "custom_process":
+            proc_name = payload.get("process_name", "custom_app")
+            print(f"\n>>> [WEB TRIGGER] Custom process '{proc_name}' launched (PID {pid})")
+            d.handle_process_event(ProcessEvent(pid=pid, ppid=1, process_name=proc_name, executable=f"/usr/bin/{proc_name}", timestamp=now))
+
+    # 2. Start WebSocket Server with client message handler
+    ws_server = LightweightWebSocketServer(host="127.0.0.1", port=8765, on_client_message=handle_client_message)
     ws_server.start()
     print("[+] WebSocket Server started on ws://127.0.0.1:8765")
 
@@ -111,6 +140,7 @@ def main():
 
     # 2. Instantiate Daemon
     daemon = ChronoSchedDaemon(db_path=":memory:", on_pipeline_step=pipeline_callback)
+    daemon_holder["daemon"] = daemon
 
     # 3. Pre-train canonical workflows so the graph is instantly populated
     print("[+] Pre-training canonical developer workflow graph...")
@@ -133,8 +163,9 @@ def main():
     sync_thread = threading.Thread(target=broadcast_pipeline_update, args=(ws_server, daemon), daemon=True)
     sync_thread.start()
 
+    dash_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend", "index.html"))
     print("\n" + "-" * 70)
-    print("  DASHBOARD URL: file:///home/vboxuser/Desktop/ChronoScheduler/frontend/index.html")
+    print(f"  DASHBOARD URL: file://{dash_path}")
     print("  Open this file in your browser to watch live telemetry.")
     print("-" * 70 + "\n")
 
